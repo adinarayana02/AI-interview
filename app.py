@@ -5,13 +5,13 @@ from pages.interview_schedule import interview_schedule_page
 
 def main():
     st.sidebar.title("Navigation")
-    page = st.sidebar.selectbox("Select a page", ["Sign Up", "Log In", "Create Interview Schedule"])
+    selection = st.sidebar.radio("Go to", ["Sign Up", "Log In", "Create Interview Schedule"])
 
-    if page == "Sign Up":
+    if selection == "Sign Up":
         signup_page()
-    elif page == "Log In":
+    elif selection == "Log In":
         login_page()
-    elif page == "Create Interview Schedule":
+    elif selection == "Create Interview Schedule":
         interview_schedule_page()
 
 if __name__ == "__main__":
