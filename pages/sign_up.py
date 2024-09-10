@@ -17,7 +17,7 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 # Sign Up function
-def sign_up(company_name, username, email, password):
+def sign_up(username, email, password, company_name):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
@@ -34,7 +34,7 @@ def sign_up(company_name, username, email, password):
             cursor.close()
             connection.close()
 
-# Streamlit App Layout for Sign Up
+# Streamlit App Layout
 def sign_up_page():
     st.title("Recruiter Sign Up")
     company_name = st.text_input("Company Name")
