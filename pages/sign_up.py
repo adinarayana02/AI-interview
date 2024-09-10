@@ -1,16 +1,19 @@
-import streamlit as st
 import mysql.connector
 from mysql.connector import Error
 import hashlib
 
 # Database connection function
 def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Thot@adi2002",
-        database="interview_system"
-    )
+    try:
+        connection = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="Thot@adi2002",
+            database="interview_system"
+        )
+        return connection
+    except Error as e:
+        raise ConnectionError(f"Error: {e}")
 
 # Hashing password for security
 def hash_password(password):
@@ -30,23 +33,6 @@ def sign_up(username, email, password, company_name):
     except Error as e:
         return f"Error: {e}"
     finally:
-        if connection.is_connected():
+        if connection and connection.is_connected():
             cursor.close()
             connection.close()
-
-# Streamlit App Layout
-def sign_up_page():
-    st.title("Recruiter Sign Up")
-    company_name = st.text_input("Company Name")
-    email = st.text_input("Email")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    if st.button("Sign Up"):
-        if company_name and email and username and password:
-            message = sign_up(username, email, password, company_name)
-            if "Successful" in message:
-                st.success(message)
-            else:
-                st.error(message)
-        else:
-            st.error("Please fill in all fields.")
