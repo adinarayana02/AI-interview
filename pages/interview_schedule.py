@@ -1,47 +1,44 @@
 import streamlit as st
 import mysql.connector
 import openai
-from dotenv import load_dotenv
 import os
-import PyPDF2
+from dotenv import load_dotenv
 from cryptography.fernet import Fernet
-from io import BytesIO
-from random import choice
-import string
+from PyPDF2 import PdfFileReader
 
 # Load environment variables
 load_dotenv()
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
-# Database connection
-def get_db_connection():
-    return mysql.connector.connect(
+# Setup encryption
+def get_fernet_key():
+    return Fernet.generate_key()
+
+fernet = Fernet(get_fernet_key())
+
+def encrypt_password(password):
+    return fernet.encrypt(password.encode()).decode()
+
+def decrypt_password(encrypted_password):
+    return fernet.decrypt(encrypted_password.encode()).decode()
+
+def extract_email_and_name_from_resume(resume):
+    # Dummy implementation - replace with actual logic using OpenAI
+    return "example@example.com", "John Doe"
+
+def create_interview_schedule(recruiter_id, job_title, job_description, job_requirements, candidate_resume, experience, no_of_questions, questions):
+    connection = mysql.connector.connect(
         host="localhost",
         user="root",
         password="Thot@adi2002",
         database="interview_system"
     )
-
-# Function to generate a random password
-def generate_password(length=8):
-    characters = string.ascii_letters + string.digits + string.punctuation
-    return ''.join(choice(characters) for i in range(length))
-
-# Function to extract email and name from resume
-def extract_email_and_name_from_resume(resume_path):
-    # Dummy implementation - replace with actual logic
-    email = "example@example.com"
-    name = "John Doe"
-    return email, name
-
-# Function to create interview schedule
-def create_interview_schedule(recruiter_id, job_title, job_description, job_requirements, candidate_resume, experience, no_of_questions, questions):
-    connection = get_db_connection()
     cursor = connection.cursor()
-    
+
     email, name = extract_email_and_name_from_resume(candidate_resume)
+
     candidate_username = email
-    candidate_password = generate_password()
+    candidate_password = encrypt_password("user@123")
 
     cursor.execute('''
         INSERT INTO interview_schedule (recruiter_id, job_title, job_description, job_requirements, candidate_resume, experience, no_of_questions, questions)
@@ -59,59 +56,30 @@ def create_interview_schedule(recruiter_id, job_title, job_description, job_requ
     cursor.close()
     connection.close()
 
-    return candidate_username, candidate_password
+    return candidate_username, "user@123"
 
-# Streamlit UI
-def main():
-    st.title('AI Interview System')
+def interview_schedule_page():
+    st.title("Create Interview Schedule")
 
-    menu = ["Recruiter", "Candidate"]
-    choice = st.sidebar.selectbox("Select Role", menu)
-
-    if choice == "Recruiter":
-        st.subheader("Recruiter Login")
-        username = st.text_input("Username")
-        password = st.text_input("Password", type='password')
-        if st.button("Login"):
-            # Authentication logic here
-            st.success("Logged in successfully")
-
-        st.subheader("Create Interview Schedule")
+    with st.form(key='interview_schedule_form'):
+        recruiter_id = st.text_input("Recruiter ID")
         job_title = st.text_input("Job Title")
         job_description = st.text_area("Job Description")
         job_requirements = st.text_area("Job Requirements")
         candidate_resume = st.file_uploader("Upload Resume", type=["pdf"])
-        experience = st.number_input("Experience (years)", min_value=0)
+        experience = st.text_input("Experience Level")
         no_of_questions = st.number_input("Number of Questions", min_value=1)
-        questions = st.file_uploader("Upload Questions", type=["txt"])
-
-        if st.button("Create Interview Schedule"):
-            if candidate_resume and questions:
-                candidate_username, candidate_password = create_interview_schedule(
-                    recruiter_id=1,  # Replace with actual recruiter ID
-                    job_title=job_title,
-                    job_description=job_description,
-                    job_requirements=job_requirements,
-                    candidate_resume=candidate_resume,
-                    experience=experience,
-                    no_of_questions=no_of_questions,
-                    questions=questions.read()
+        questions = st.text_area("Interview Questions")
+        
+        submit_button = st.form_submit_button(label='Create Schedule')
+        if submit_button:
+            if candidate_resume:
+                candidate_resume_content = candidate_resume.read()
+                username, password = create_interview_schedule(
+                    recruiter_id, job_title, job_description, job_requirements, candidate_resume_content, experience, no_of_questions, questions
                 )
-                st.success(f"Interview schedule created successfully.\nUsername: {candidate_username}\nPassword: {candidate_password}")
+                st.success("Interview schedule created successfully!")
+                st.write(f"Candidate Username: {username}")
+                st.write(f"Candidate Password: {password}")
             else:
-                st.error("Please upload both resume and questions.")
-
-    elif choice == "Candidate":
-        st.subheader("Candidate Login")
-        username = st.text_input("Username")
-        password = st.text_input("Password", type='password')
-        if st.button("Login"):
-            # Authentication logic here
-            st.success("Logged in successfully")
-
-        st.subheader("Start Interview")
-        # Assuming the interview questions and other details are available
-        st.write("Interview Questions will be displayed here.")
-
-if __name__ == "__main__":
-    main()
+                st.error("Please upload a resume.")
