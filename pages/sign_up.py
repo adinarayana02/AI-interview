@@ -9,7 +9,7 @@ def get_db_connection():
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="Thot@adi2002",  # Replace with your MySQL password
+            password="your_password",  # Replace with your MySQL password
             database="interview_system"
         )
         return connection
@@ -41,7 +41,8 @@ def sign_up(username, email, password, company_name):
     except Error as e:
         return f"Error: {e}"
     finally:
-        if connection and connection.is_connected():
+        # Ensure that the connection is closed properly
+        if connection is not None and connection.is_connected():
             cursor.close()
             connection.close()
 
