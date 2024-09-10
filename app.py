@@ -1,3 +1,5 @@
+# app.py
+
 import streamlit as st
 from pages.signup import signup_page
 from pages.login import login_page
