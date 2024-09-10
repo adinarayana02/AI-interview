@@ -3,66 +3,54 @@ import mysql.connector
 import openai
 import os
 from dotenv import load_dotenv
-from cryptography.fernet import Fernet
 from PyPDF2 import PdfFileReader
 
 # Load environment variables
 load_dotenv()
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
-# Get the Fernet key from environment variables
-fernet_key = os.getenv('FERNET_KEY')
-if fernet_key:
-    fernet = Fernet(fernet_key.encode())
-else:
-    st.error("Fernet key is not set in environment variables.")
-
-def encrypt_password(password):
-    return fernet.encrypt(password.encode()).decode()
-
-def decrypt_password(encrypted_password):
-    return fernet.decrypt(encrypted_password.encode()).decode()
-
-def extract_email_and_name_from_resume(resume_content):
+def extract_email_and_name_from_resume(resume):
     # Dummy implementation - replace with actual logic using OpenAI
-    return "example@example.com", "John Doe"
+    with PdfFileReader(resume) as pdf:
+        text = ""
+        for page in pdf.pages:
+            text += page.extract_text()
+        # Simple example of extracting email (replace with actual extraction logic)
+        email = "example@example.com"  # Placeholder email extraction
+        name = "John Doe"  # Placeholder name extraction
+    return email, name
 
 def create_interview_schedule(recruiter_id, job_title, job_description, job_requirements, candidate_resume, experience, no_of_questions, questions):
-    try:
-        connection = mysql.connector.connect(
-            host=os.getenv('DB_HOST'),
-            user=os.getenv('DB_USER'),
-            password=os.getenv('DB_PASSWORD'),
-            database=os.getenv('DB_NAME')
-        )
-        cursor = connection.cursor()
+    connection = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="Thot@adi2002",
+        database="interview_system"
+    )
+    cursor = connection.cursor()
 
-        email, name = extract_email_and_name_from_resume(candidate_resume)
+    email, name = extract_email_and_name_from_resume(candidate_resume)
 
-        candidate_username = email
-        candidate_password = encrypt_password("user@123")
+    candidate_username = email
+    candidate_password = "user@123"
 
-        cursor.execute('''
-            INSERT INTO interview_schedule (recruiter_id, job_title, job_description, job_requirements, candidate_resume, experience, no_of_questions, questions)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        ''', (recruiter_id, job_title, job_description, job_requirements, candidate_resume, experience, no_of_questions, questions))
+    cursor.execute('''
+        INSERT INTO interview_schedule (recruiter_id, job_title, job_description, job_requirements, candidate_resume, experience, no_of_questions, questions)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    ''', (recruiter_id, job_title, job_description, job_requirements, candidate_resume.read(), experience, no_of_questions, questions))
 
-        schedule_id = cursor.lastrowid
+    schedule_id = cursor.lastrowid
 
-        cursor.execute('''
-            INSERT INTO candidate (candidate_username, candidate_password, schedule_id)
-            VALUES (%s, %s, %s)
-        ''', (candidate_username, candidate_password, schedule_id))
+    cursor.execute('''
+        INSERT INTO candidate (candidate_username, candidate_password, schedule_id)
+        VALUES (%s, %s, %s)
+    ''', (candidate_username, candidate_password, schedule_id))
 
-        connection.commit()
-        cursor.close()
-        connection.close()
+    connection.commit()
+    cursor.close()
+    connection.close()
 
-        return candidate_username, "user@123"
-    except mysql.connector.Error as err:
-        st.error(f"Database error: {err}")
-    except Exception as e:
-        st.error(f"Error: {e}")
+    return candidate_username, candidate_password
 
 def interview_schedule_page():
     st.title("Create Interview Schedule")
@@ -80,9 +68,8 @@ def interview_schedule_page():
         submit_button = st.form_submit_button(label='Create Schedule')
         if submit_button:
             if candidate_resume:
-                candidate_resume_content = candidate_resume.read()
                 username, password = create_interview_schedule(
-                    recruiter_id, job_title, job_description, job_requirements, candidate_resume_content, experience, no_of_questions, questions
+                    recruiter_id, job_title, job_description, job_requirements, candidate_resume, experience, no_of_questions, questions
                 )
                 st.success("Interview schedule created successfully!")
                 st.write(f"Candidate Username: {username}")
