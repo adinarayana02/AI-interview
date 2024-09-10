@@ -9,7 +9,10 @@ load_dotenv()
 
 # Setup encryption
 fernet_key = os.getenv('FERNET_KEY').encode()
-fernet = Fernet(fernet_key)
+if not fernet_key:
+    st.error("Fernet key not set in environment variables.")
+else:
+    fernet = Fernet(fernet_key)
 
 def encrypt_password(password):
     return fernet.encrypt(password.encode()).decode()
