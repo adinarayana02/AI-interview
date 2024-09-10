@@ -9,7 +9,7 @@ def get_db_connection():
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="Thot@adi2002",
+            password="Thot@adi2002",  # Replace with your MySQL password
             database="interview_system"
         )
         return connection
@@ -29,6 +29,7 @@ def sign_up(username, email, password, company_name):
     
     try:
         cursor = connection.cursor()
+        # Prepare the INSERT query
         query = """
         INSERT INTO recruiter (company_name, email, username, password) 
         VALUES (%s, %s, %s, %s)
@@ -51,6 +52,7 @@ def sign_up_page():
     email = st.text_input("Email")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
+    
     if st.button("Sign Up"):
         if company_name and email and username and password:
             message = sign_up(username, email, password, company_name)
