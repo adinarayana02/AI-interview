@@ -31,7 +31,7 @@ def signup_page():
                 connection = mysql.connector.connect(
                     host="localhost",
                     user="root",
-                    password="password",
+                    password="Thot@adi2002",
                     database="interview_system"
                 )
                 cursor = connection.cursor()
