@@ -11,10 +11,8 @@ load_dotenv()
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # Setup encryption
-def get_fernet_key():
-    return Fernet.generate_key()
-
-fernet = Fernet(get_fernet_key())
+fernet_key = os.getenv('FERNET_KEY').encode()
+fernet = Fernet(fernet_key)
 
 def encrypt_password(password):
     return fernet.encrypt(password.encode()).decode()
@@ -22,16 +20,16 @@ def encrypt_password(password):
 def decrypt_password(encrypted_password):
     return fernet.decrypt(encrypted_password.encode()).decode()
 
-def extract_email_and_name_from_resume(resume):
+def extract_email_and_name_from_resume(resume_content):
     # Dummy implementation - replace with actual logic using OpenAI
     return "example@example.com", "John Doe"
 
 def create_interview_schedule(recruiter_id, job_title, job_description, job_requirements, candidate_resume, experience, no_of_questions, questions):
     connection = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Thot@adi2002",
-        database="interview_system"
+        host=os.getenv('DB_HOST'),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        database=os.getenv('DB_NAME')
     )
     cursor = connection.cursor()
 
