@@ -29,9 +29,11 @@ def sign_up(username, email, password, company_name):
     
     try:
         cursor = connection.cursor()
-        hashed_password = hash_password(password)
-        query = "INSERT INTO recruiter (company_name, email, username, password) VALUES (%s, %s, %s, %s)"
-        values = (company_name, email, username, hashed_password)
+        query = """
+        INSERT INTO recruiter (company_name, email, username, password) 
+        VALUES (%s, %s, %s, %s)
+        """
+        values = (company_name, email, username, hash_password(password))
         cursor.execute(query, values)
         connection.commit()
         return "Sign Up Successful! You can now log in."
