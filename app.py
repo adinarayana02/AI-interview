@@ -1,5 +1,5 @@
 import streamlit as st
-from pages.login import login_page, sign_up_page
+from pages.login import login_page, signup_page
 from pages.interview_schedule import interview_schedule_page
 
 def main():
