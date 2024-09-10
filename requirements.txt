@@ -8,3 +8,4 @@ whisper
 python-dotenv
 PyPDF2
 openai
+cryptography
