@@ -7,7 +7,7 @@ import os
 load_dotenv()
 
 def login_page():
-    st.title("Log In")
+    st.title("Recruiter Log In")
 
     with st.form(key='login_form'):
         username = st.text_input("Username")
@@ -24,7 +24,7 @@ def login_page():
                 )
                 cursor = connection.cursor()
                 cursor.execute('''
-                    SELECT password FROM users WHERE username = %s
+                    SELECT password FROM recruiter WHERE username = %s
                 ''', (username,))
                 result = cursor.fetchone()
                 if result:
