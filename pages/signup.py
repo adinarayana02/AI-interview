@@ -18,6 +18,7 @@ def signup_page():
 
         if submit_button:
             if company_name and username and password and email:
+                # Connect to the database
                 connection = mysql.connector.connect(
                     host="localhost",
                     user="root",
@@ -25,13 +26,19 @@ def signup_page():
                     database="interview_system"
                 )
                 cursor = connection.cursor()
-                cursor.execute('''
-                    INSERT INTO recruiter (company_name, username, password, email)
-                    VALUES (%s, %s, %s, %s)
-                ''', (company_name, username, password, email))
-                connection.commit()
-                cursor.close()
-                connection.close()
-                st.success("Sign Up successful!")
+                
+                try:
+                    # Insert recruiter data into the database
+                    cursor.execute('''
+                        INSERT INTO recruiter (company_name, username, password, email)
+                        VALUES (%s, %s, %s, %s)
+                    ''', (company_name, username, password, email))
+                    connection.commit()
+                    st.success("Sign Up successful!")
+                except mysql.connector.IntegrityError as err:
+                    st.error(f"Error: {err}")
+                finally:
+                    cursor.close()
+                    connection.close()
             else:
                 st.error("Please fill in all fields.")
