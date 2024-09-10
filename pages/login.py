@@ -7,12 +7,12 @@ import os
 # Load environment variables
 load_dotenv()
 
-# Setup encryption
-fernet_key = os.getenv('FERNET_KEY').encode()
-if not fernet_key:
-    st.error("Fernet key not set in environment variables.")
+# Get the Fernet key from environment variables
+fernet_key = os.getenv('FERNET_KEY')
+if fernet_key:
+    fernet = Fernet(fernet_key.encode())
 else:
-    fernet = Fernet(fernet_key)
+    st.error("Fernet key is not set in environment variables.")
 
 def decrypt_password(encrypted_password):
     return fernet.decrypt(encrypted_password.encode()).decode()
@@ -27,26 +27,31 @@ def login_page():
 
         if submit_button:
             if username and password:
-                connection = mysql.connector.connect(
-                    host=os.getenv('DB_HOST'),
-                    user=os.getenv('DB_USER'),
-                    password=os.getenv('DB_PASSWORD'),
-                    database=os.getenv('DB_NAME')
-                )
-                cursor = connection.cursor()
-                cursor.execute('''
-                    SELECT password FROM users WHERE username = %s
-                ''', (username,))
-                result = cursor.fetchone()
-                if result:
-                    stored_password = result[0]
-                    if decrypt_password(stored_password) == password:
-                        st.success("Log In successful!")
+                try:
+                    connection = mysql.connector.connect(
+                        host=os.getenv('DB_HOST'),
+                        user=os.getenv('DB_USER'),
+                        password=os.getenv('DB_PASSWORD'),
+                        database=os.getenv('DB_NAME')
+                    )
+                    cursor = connection.cursor()
+                    cursor.execute('''
+                        SELECT password FROM users WHERE username = %s
+                    ''', (username,))
+                    result = cursor.fetchone()
+                    if result:
+                        stored_password = result[0]
+                        if decrypt_password(stored_password) == password:
+                            st.success("Log In successful!")
+                        else:
+                            st.error("Invalid username or password.")
                     else:
-                        st.error("Invalid username or password.")
-                else:
-                    st.error("User not found.")
-                cursor.close()
-                connection.close()
+                        st.error("User not found.")
+                    cursor.close()
+                    connection.close()
+                except mysql.connector.Error as err:
+                    st.error(f"Database error: {err}")
+                except Exception as e:
+                    st.error(f"Error: {e}")
             else:
                 st.error("Please fill in all fields.")
