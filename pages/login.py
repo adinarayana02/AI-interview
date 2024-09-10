@@ -8,10 +8,8 @@ import os
 load_dotenv()
 
 # Setup encryption
-def get_fernet_key():
-    return Fernet.generate_key()
-
-fernet = Fernet(get_fernet_key())
+fernet_key = os.getenv('FERNET_KEY').encode()
+fernet = Fernet(fernet_key)
 
 def decrypt_password(encrypted_password):
     return fernet.decrypt(encrypted_password.encode()).decode()
@@ -27,10 +25,10 @@ def login_page():
         if submit_button:
             if username and password:
                 connection = mysql.connector.connect(
-                    host="localhost",
-                    user="root",
-                    password="Thot@adi2002",
-                    database="interview_system"
+                    host=os.getenv('DB_HOST'),
+                    user=os.getenv('DB_USER'),
+                    password=os.getenv('DB_PASSWORD'),
+                    database=os.getenv('DB_NAME')
                 )
                 cursor = connection.cursor()
                 cursor.execute('''
