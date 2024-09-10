@@ -1,16 +1,14 @@
 import streamlit as st
 import mysql.connector
-import openai
 import os
 from dotenv import load_dotenv
 from PyPDF2 import PdfFileReader
 
 # Load environment variables
 load_dotenv()
-openai.api_key = os.getenv('OPENAI_API_KEY')
 
 def extract_email_and_name_from_resume(resume):
-    # Dummy implementation - replace with actual logic using OpenAI
+    # Dummy implementation - replace with actual logic
     with PdfFileReader(resume) as pdf:
         text = ""
         for page in pdf.pages:
@@ -37,14 +35,14 @@ def create_interview_schedule(recruiter_id, job_title, job_description, job_requ
     cursor.execute('''
         INSERT INTO interview_schedule (recruiter_id, job_title, job_description, job_requirements, candidate_resume, experience, no_of_questions, questions)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-    ''', (recruiter_id, job_title, job_description, job_requirements, candidate_resume.read(), experience, no_of_questions, questions))
+    ''', (recruiter_id, job_title, job_description, job_requirements, candidate_resume.name, experience, no_of_questions, questions))
 
     schedule_id = cursor.lastrowid
 
     cursor.execute('''
-        INSERT INTO candidate (candidate_username, candidate_password, schedule_id)
+        INSERT INTO interview_credentials (schedule_id, username, password)
         VALUES (%s, %s, %s)
-    ''', (candidate_username, candidate_password, schedule_id))
+    ''', (schedule_id, candidate_username, candidate_password))
 
     connection.commit()
     cursor.close()
