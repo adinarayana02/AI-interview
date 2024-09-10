@@ -27,6 +27,7 @@ def log_in(username, password):
         cursor.execute(query, values)
         result = cursor.fetchone()
         if result:
+            st.session_state.logged_in = True
             return "Login Successful!"
         else:
             return "Invalid username or password."
@@ -37,7 +38,7 @@ def log_in(username, password):
             cursor.close()
             connection.close()
 
-# Streamlit App Layout for Log In
+# Streamlit App Layout
 def login_page():
     st.title("Recruiter Log In")
     username = st.text_input("Username")
@@ -47,7 +48,6 @@ def login_page():
             message = log_in(username, password)
             if "Successful" in message:
                 st.success(message)
-                st.session_state.logged_in = True
                 st.experimental_rerun()  # Refresh the page to redirect
             else:
                 st.error(message)
